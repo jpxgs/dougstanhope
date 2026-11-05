@@ -2,62 +2,186 @@ export const storeProducts = [
   {
     name: "Rough-Life Roast",
     price: "$400.00",
+    href: "https://www.dougstanhope.com/store/p/rough-life-cameo",
     image: "/images/stanhope/store/rough-life-roast.webp",
   },
   {
     name: "Your Sins Heavyweight Tee",
     price: "$45.00",
+    href: "https://www.dougstanhope.com/store/p/your-sins-premium-heavyweight-tee",
     image: "/images/stanhope/store/your-sins-tee.webp",
   },
   {
     name: "AIG Heavyweight Tee",
     price: "$45.00",
+    href: "https://www.dougstanhope.com/store/p/abortion-is-green-tee-1",
     image: "/images/stanhope/store/aig-heavyweight-tee.webp",
   },
   {
     name: "AIG Infant Bodysuit",
     price: "$35.00",
+    href: "https://www.dougstanhope.com/store/p/aig-infant-bodysuit",
     image: "/images/stanhope/store/aig-infant-bodysuit.webp",
   },
   {
     name: "Embroidered Beanie",
     price: "$38.00",
+    href: "https://www.dougstanhope.com/store/p/embroidered-beanie",
     image: "/images/stanhope/store/embroidered-beanie.webp",
   },
   {
     name: "Radical Apathy Mug (11 oz)",
     price: "$22.99",
+    href: "https://www.dougstanhope.com/store/p/radical-apathy-mug",
     image: "/images/stanhope/store/radical-apathy-mug.webp",
   },
   {
     name: "Radical Apathy Koozie",
     price: "$19.99",
+    href: "https://www.dougstanhope.com/store/p/radical-apathy-koozie",
     image: "/images/stanhope/store/radical-apathy-koozie.webp",
   },
   {
     name: "Radical Apathy Koozie (Slim)",
     price: "$19.99",
+    href: "https://www.dougstanhope.com/store/p/can-cooler",
     image: "/images/stanhope/store/radical-apathy-koozie-slim.webp",
   },
   {
     name: "Drunk with Power Beer Koozie (Slim)",
     price: "$19.99",
+    href: "https://www.dougstanhope.com/store/p/drunk-with-power-beer-koozie-slim",
     image: "/images/stanhope/store/drunk-with-power-koozie-slim.webp",
   },
   {
     name: "Drunk with Power Beer Koozie",
     price: "$19.99",
+    href: "https://www.dougstanhope.com/store/p/drunk-with-power-beer-koozie",
     image: "/images/stanhope/store/drunk-with-power-koozie.webp",
   },
   {
     name: "AIG Koozie",
     price: "$19.99",
+    href: "https://www.dougstanhope.com/store/p/aig-koozie",
     image: "/images/stanhope/store/aig-koozie.webp",
   },
   {
     name: "AIG Koozie (Slim)",
     price: "$19.99",
+    href: "https://www.dougstanhope.com/store/p/aig-koozie-slim",
     image: "/images/stanhope/store/aig-koozie-slim.webp",
+  },
+] as const
+
+export const tourYears = [
+  {
+    year: "2026",
+    places:
+      "Eureka · La Jolla · San Diego · Escondido · Appleton · Fargo · Minneapolis · Seattle · Irvine · Houston · Denver",
+    detail:
+      "The 2026 listings include California club dates, a Midwest run, Seattle, Irvine, Houston and Denver. The original archive marks several dates as sold out.",
+    regions: "United States",
+  },
+  {
+    year: "2025",
+    places: "Australia · United States · Sweden · Norway · Canada",
+    detail:
+      "A wide-ranging year with Australian dates, a long U.S. club run, Scandinavia and additional North American stops. The source archive preserves venue names and sold-out notes.",
+    regions: "Australia · North America · Scandinavia",
+  },
+  {
+    year: "2023",
+    places:
+      "Brisbane · Perth · Sydney · Canberra · Adelaide · Melbourne · Seattle · Montreal · Toronto · Winnipeg",
+    detail:
+      "The published schedule spans Australia and North America, including a multi-city Australian run and Canadian dates in Montreal, Toronto and Winnipeg.",
+    regions: "Australia · Canada · United States",
+  },
+  {
+    year: "2022",
+    places: "California · Midwest · Northeast · Southeast · United Kingdom · Ireland",
+    detail:
+      "A substantial U.S. tour followed by a UK and Ireland run. The archived schedule includes a cancelled Charleston date, shown struck through in the original listing.",
+    regions: "United States · UK · Ireland",
+  },
+  {
+    year: "2021",
+    places:
+      "Flagstaff · Salt Lake City · Idaho Falls · Bozeman · Denver · San Francisco · Boston · Chicago · Philadelphia · Las Vegas",
+    detail:
+      "The North American schedule moves through the Mountain West, West Coast, Northeast, Midwest, Texas and Florida, with multiple-night engagements in several cities.",
+    regions: "North America",
+  },
+  {
+    year: "2020",
+    places: "Boise · Spokane · Seattle · Baltimore",
+    detail: "A short run of dates listed in March, including Boise, Spokane, Seattle and Baltimore.",
+    regions: "North America",
+  },
+  {
+    year: "2019",
+    places:
+      "Bisbee · Cincinnati · Minneapolis · Las Vegas · Great Lakes · Northeast · Southeast · Hawaii",
+    detail:
+      "The archive records a broad U.S. tour with repeat club dates, a Midwest and East Coast run, Southern dates, Honolulu and a New Year's Eve Las Vegas show.",
+    regions: "United States",
+  },
+  {
+    year: "2018",
+    places:
+      "San Diego · Hong Kong · Singapore · Ho Chi Minh City · Shanghai · Bangkok · Japan · Australia · New Zealand · Canada · UK · Ireland",
+    detail:
+      "An international year: North American dates, Magner's International Comedy Festival stops across Asia, Australia and New Zealand, Canada, the UK, Ireland and the Netherlands.",
+    regions: "North America · Asia · Australia · New Zealand · Europe",
+  },
+  {
+    year: "2017",
+    places: "Carolinas · Northeast · Midwest · Texas · Gulf Coast · Pacific Northwest",
+    detail:
+      "A long U.S. itinerary that includes East Coast and Midwest club dates, a Southern run, Texas, the Pacific Northwest and a live podcast appearance at All Things Comedy Fest in Phoenix.",
+    regions: "United States",
+  },
+  {
+    year: "2016",
+    places: "Bisbee · Southwest · Mountain West · Midwest · Southeast",
+    detail:
+      "The published schedule includes a February Bisbee show and a summer-to-fall U.S. run through the Southwest, Mountain West and central states.",
+    regions: "United States",
+  },
+  {
+    year: "2015",
+    places: "Canada · United Kingdom · Europe · Bisbee",
+    detail:
+      "The original archive groups this period around Canadian, UK and European touring, alongside Bisbee dates. Consult the source listing for the complete venue-by-venue record.",
+    regions: "Canada · UK · Europe · United States",
+  },
+  {
+    year: "2014",
+    places: "Last Gasp Tour · United States",
+    detail:
+      "The Last Gasp Tour is identified in the original archive. The source page is linked for the complete historical itinerary and venue details.",
+    regions: "United States",
+  },
+  {
+    year: "2013",
+    places: "Shit Town Comedy Tour · United States · Canada · United Kingdom",
+    detail:
+      "Includes the Shit Town Comedy Tour, a North American run and an extensive UK itinerary. The original listing preserves the tour's individual stops and venues.",
+    regions: "United States · Canada · UK",
+  },
+  {
+    year: "2012",
+    places: "Big Stink Tour · United States · United Kingdom",
+    detail:
+      "The Big Stink Tour is named in the source archive. Open the original year-by-year listing for the full date and venue history.",
+    regions: "United States · UK",
+  },
+  {
+    year: "2011",
+    places: "United States · Canada · United Kingdom",
+    detail:
+      "The archive documents an extensive run across North America and the UK, including multi-night dates in London and other major cities.",
+    regions: "United States · Canada · UK",
   },
 ] as const
 

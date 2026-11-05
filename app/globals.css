@@ -467,6 +467,18 @@ body {
   background: rgba(239, 201, 67, 0.12);
 }
 
+.button--outline.button--on-paper {
+  border-color: var(--ink);
+  background: transparent;
+  color: var(--ink) !important;
+}
+
+.button--outline.button--on-paper:hover {
+  border-color: var(--red);
+  background: transparent;
+  color: var(--red) !important;
+}
+
 .button--ink {
   background: var(--ink);
   color: var(--paper) !important;
@@ -779,6 +791,8 @@ body {
 .text-link {
   display: inline-flex;
   width: max-content;
+  max-width: 100%;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   color: var(--red) !important;
@@ -1327,6 +1341,7 @@ body {
 
 .past-gigs-note {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-top: 18px;
   padding: 20px 22px;
@@ -1399,25 +1414,56 @@ body {
 }
 
 .episode-card {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  scroll-margin-top: 120px;
+}
+
+.episode-card__summary {
+  position: relative;
+  z-index: 1;
   display: grid;
+  width: 100%;
   grid-template-columns: 104px minmax(0, 1fr);
   gap: 16px;
   align-content: start;
   padding: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  cursor: pointer;
+  list-style: none;
+  scroll-margin-top: 120px;
 }
 
-.episode-card > img {
+.episode-card__summary::-webkit-details-marker {
+  display: none;
+}
+
+.episode-card__summary::marker {
+  content: "";
+}
+
+/* Title and copy must not steal the disclosure hit target or hide under the sticky header. */
+.episode-card__summary * {
+  pointer-events: none;
+  scroll-margin-top: 120px;
+}
+
+.episode-card:not([open]) > :not(summary) {
+  display: none;
+}
+
+.episode-card__summary > img {
   display: block;
-  width: 100%;
-  aspect-ratio: 1;
+  width: 104px;
+  height: 104px;
   object-fit: cover;
   background: #fff;
 }
 
 .episode-card__copy {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
@@ -1432,19 +1478,43 @@ body {
   text-transform: uppercase;
 }
 
-.episode-card h4 {
-  margin: 0;
+.episode-card__copy strong {
+  color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(1.05rem, 1.5vw, 1.35rem);
-  line-height: 1;
+  font-weight: 800;
+  line-height: 1.05;
   text-transform: uppercase;
 }
 
-.episode-card__copy > p:last-child {
+.episode-card__expand {
+  color: var(--red);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.episode-card__expanded {
+  position: relative;
+  z-index: 0;
+  padding: 0 1rem 1rem;
+}
+
+.episode-card__expanded > p {
   margin: 0;
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.55;
+}
+
+.episode-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
 }
 
 .store-intro {
@@ -1461,10 +1531,13 @@ body {
 }
 
 .store-card {
+  display: block;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--surface);
+  color: inherit;
+  text-decoration: none;
 }
 
 .store-card > img {
@@ -1495,6 +1568,15 @@ body {
   margin: 0;
   color: var(--red);
   font-weight: 800;
+}
+
+.store-card__action {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 .store-note {
@@ -1675,14 +1757,293 @@ body {
   }
 }
 
+.archive-year-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 2rem 0;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.past-gigs-note,
+.past-gigs-note > *,
+.archive-year-grid,
+.archive-year,
+.archive-year > summary {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.archive-year {
+  display: block;
+  background: var(--paper);
+}
+
+.archive-year > summary {
+  display: flex;
+  min-height: 112px;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.15rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.archive-year > summary::-webkit-details-marker,
+.work-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.archive-year > summary::marker,
+.work-card > summary::marker {
+  content: "";
+}
+
+.archive-year strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.archive-year > summary > span:not(.archive-year__prompt) {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.archive-year__prompt,
+.work-card__prompt,
+.video-card__prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  color: var(--red);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.archive-year__details {
+  padding: 0 1.15rem 1.25rem;
+}
+
+.archive-year__details p {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.archive-year__regions {
+  font-size: 0.74rem;
+}
+
+.podcast-archive__actions,
+.podcast-full-catalog__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.podcast-full-catalog {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+}
+
+.podcast-full-catalog h4 {
+  margin: 0.4rem 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.podcast-full-catalog p:not(.micro-label) {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.work-card {
+  display: block;
+}
+
+.work-card > summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  list-style: none;
+}
+
+.work-card__prompt {
+  width: 100%;
+  margin-top: 1.1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+.work-card__expanded {
+  padding-top: 0.2rem;
+}
+
+.work-card:not([open]) > :not(summary) {
+  display: none;
+}
+
+.video-card__trigger {
+  display: block;
+  width: 100%;
+  padding: 0 0 0.9rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.video-card__trigger > strong {
+  display: block;
+  margin: 0.85rem 1rem 0;
+  padding: 0;
+}
+
+.video-card__prompt {
+  margin: 0.65rem 1rem 0;
+}
+
+.video-card__source {
+  padding: 0.1rem 1rem 1rem;
+}
+
+.video-card__trigger:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+.youtube-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.youtube-player > div,
+.youtube-player iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.youtube-player > div {
+  pointer-events: none;
+}
+
+.youtube-player iframe {
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.video-lightbox {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(8px);
+}
+
+.video-lightbox__dialog {
+  width: min(100%, 1040px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 24px 100px rgba(0, 0, 0, 0.5);
+}
+
+.video-lightbox__top,
+.video-lightbox__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.video-lightbox__top h4 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  text-transform: uppercase;
+}
+
+.video-lightbox__top button {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.video-lightbox__bottom {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.video-lightbox__watch {
+  color: var(--red) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 640px) {
+  .archive-year-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .video-lightbox {
+    padding: 0.65rem;
+  }
+
+  .video-lightbox__top,
+  .video-lightbox__bottom {
+    padding: 0.75rem;
+  }
+}
+
 @media (max-width: 480px) {
-  .episode-card {
+  .episode-card__summary {
     grid-template-columns: 76px minmax(0, 1fr);
     gap: 12px;
     padding: 10px;
   }
 
-  .episode-card__copy > p:last-child {
+  .episode-card__summary > img {
+    width: 76px;
+    height: 76px;
+  }
+
+  .episode-card__expanded > p {
     font-size: 0.8rem;
   }
 
