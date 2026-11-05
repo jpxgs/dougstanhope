@@ -118,7 +118,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :root:not(.theme-day) {
     color-scheme: dark;
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -170,6 +170,15 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 92px;
+}
+
+html.theme-day {
+  color-scheme: light;
+}
+
+html.theme-night {
+  color-scheme: dark;
 }
 
 body {
@@ -193,6 +202,7 @@ body {
   transition: background-color 180ms ease, color 180ms ease;
 }
 
+html.theme-night .stanhope-site,
 .stanhope-site.theme-night {
   --paper: #171614;
   --surface: #211f1c;
@@ -550,6 +560,7 @@ body {
   color: var(--red);
 }
 
+html.theme-night .stanhope-site mark,
 .stanhope-site.theme-night mark {
   color: #9a281f;
 }
@@ -1053,6 +1064,10 @@ body {
 }
 
 @media (max-width: 900px) {
+  html {
+    scroll-padding-top: 148px;
+  }
+
   .site-header__inner {
     grid-template-areas:
       "brand toggle"
@@ -1418,7 +1433,6 @@ body {
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--surface);
-  scroll-margin-top: 120px;
 }
 
 .episode-card__summary {
@@ -1432,7 +1446,6 @@ body {
   padding: 14px;
   cursor: pointer;
   list-style: none;
-  scroll-margin-top: 120px;
 }
 
 .episode-card__summary::-webkit-details-marker {
@@ -1443,10 +1456,9 @@ body {
   content: "";
 }
 
-/* Title and copy must not steal the disclosure hit target or hide under the sticky header. */
+/* Title and copy must not steal the disclosure hit target. */
 .episode-card__summary * {
   pointer-events: none;
-  scroll-margin-top: 120px;
 }
 
 .episode-card:not([open]) > :not(summary) {

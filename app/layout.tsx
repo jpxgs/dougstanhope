@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { themeInitScript } from '../lib/theme'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -37,8 +38,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

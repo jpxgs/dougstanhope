@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { ArrowUpRight, Moon, Sun } from "lucide-react"
 import {
@@ -10,6 +10,7 @@ import {
   storeProducts,
   tourYears,
 } from "./stanhope-content"
+import { persistTheme, themeFromDocument, THEME_STORAGE_KEY } from "../lib/theme"
 
 const images = {
   hero: "/images/stanhope/hero.webp",
@@ -1041,12 +1042,31 @@ function SiteFooter() {
 export function StanhopeSite() {
   const [isNight, setIsNight] = useState(false)
 
+  useLayoutEffect(() => {
+    const apply = () => setIsNight(themeFromDocument() === "night")
+    apply()
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY || !event.newValue) return
+      if (event.newValue !== "day" && event.newValue !== "night") return
+      persistTheme(event.newValue)
+      apply()
+    }
+    window.addEventListener("storage", onStorage)
+    return () => window.removeEventListener("storage", onStorage)
+  }, [])
+
+  function toggleNight() {
+    const next = isNight ? "day" : "night"
+    persistTheme(next)
+    setIsNight(next === "night")
+  }
+
   return (
     <div className={`stanhope-site${isNight ? " theme-night" : ""}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <SiteHeader isNight={isNight} onToggleNight={() => setIsNight((current) => !current)} />
+      <SiteHeader isNight={isNight} onToggleNight={toggleNight} />
       <main id="main-content">
         <Hero />
         <Intro />
