@@ -1,9 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { ArrowUpRight, Moon, Sun } from "lucide-react"
-import { podcastEpisodes, pressQuotes, standUpGroups, storeProducts } from "./stanhope-content"
+import {
+  podcastEpisodes,
+  pressQuotes,
+  standUpGroups,
+  storeProducts,
+  tourYears,
+} from "./stanhope-content"
 
 const images = {
   hero: "/images/stanhope/hero.webp",
@@ -25,7 +31,7 @@ const podcastLinks = [
     title: "Listen to the show",
     description: "Podcast feed and available episodes.",
     action: "Listen",
-    href: "https://allthingscomedy.com/podcast/doug-stanhope",
+    href: "https://allthingscomedy.com/podcasts/the-doug-stanhope-podcast/",
   },
   {
     label: "APPLE PODCASTS",
@@ -61,8 +67,8 @@ const workItems = [
     title: "No Place Like Home",
     description:
       "A hometown-style performance filmed in Bisbee, Arizona, among friends and familiar surroundings.",
-    action: "",
-    href: "",
+    action: "Official film information",
+    href: "https://www.sonypictures.com/movies/dougstanhopenoplacelikehome",
   },
   {
     number: "04",
@@ -70,8 +76,8 @@ const workItems = [
     title: "The Dying of a Last Breed",
     description:
       "A 2020 stand-up special filmed at the Plaza Hotel & Casino in Las Vegas.",
-    action: "",
-    href: "",
+    action: "Watch / rental page",
+    href: "https://vimeo.com/ondemand/thedyingofalastbreed/414332091",
   },
   {
     number: "05",
@@ -79,8 +85,8 @@ const workItems = [
     title: "No Encore for the Donkey",
     description:
       "A later book project in Stanhope’s growing catalogue of writing.",
-    action: "",
-    href: "",
+    action: "Audiobook edition",
+    href: "https://books.apple.com/ca/audiobook/no-encore-for-the-donkey-original-recording/id6824072662",
   },
 ]
 
@@ -140,6 +146,187 @@ const socialLinks = [
   { label: "Facebook", href: "https://www.facebook.com/officialstanhope/" },
   { label: "YouTube", href: "https://www.youtube.com/@stanhopetv" },
 ]
+
+const pastGigsArchive = "https://www.dougstanhope.com/pastgigs"
+
+const episodePlatforms = [
+  { label: "Original show notes", href: "https://www.dougstanhope.com/podcast" },
+  {
+    label: "All Things Comedy archive",
+    href: "https://allthingscomedy.com/podcasts/the-doug-stanhope-podcast/",
+  },
+  {
+    label: "Apple Podcasts",
+    href: "https://podcasts.apple.com/us/podcast/the-doug-stanhope-podcast/id610821246",
+  },
+]
+
+const START_VOLUME = 50
+
+type Clip = { title: string; id: string }
+
+type YtPlayer = {
+  setVolume: (volume: number) => void
+  stopVideo: () => void
+  destroy: () => void
+}
+
+type YtEvent = { target: YtPlayer; data?: number }
+
+declare global {
+  interface Window {
+    YT?: {
+      Player: new (
+        element: HTMLElement,
+        options: {
+          videoId: string
+          playerVars?: Record<string, number | string>
+          events?: {
+            onReady?: (event: YtEvent) => void
+            onStateChange?: (event: YtEvent) => void
+          }
+        },
+      ) => YtPlayer
+      PlayerState?: { PLAYING: number; BUFFERING: number }
+    }
+    onYouTubeIframeAPIReady?: () => void
+  }
+}
+
+let youtubeApiPromise: Promise<void> | null = null
+
+function loadYouTubeApi() {
+  if (window.YT?.Player) return Promise.resolve()
+  if (!youtubeApiPromise) {
+    youtubeApiPromise = new Promise((resolve) => {
+      const previous = window.onYouTubeIframeAPIReady
+      window.onYouTubeIframeAPIReady = () => {
+        previous?.()
+        resolve()
+      }
+      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        const script = document.createElement("script")
+        script.src = "https://www.youtube.com/iframe_api"
+        document.head.appendChild(script)
+      }
+    })
+  }
+  return youtubeApiPromise
+}
+
+function YouTubePlayer({ videoId }: { videoId: string }) {
+  const mountRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let player: YtPlayer | undefined
+    let cancelled = false
+    let lockedVolume = false
+
+    const applyVolume = (target: YtPlayer) => {
+      target.setVolume(START_VOLUME)
+    }
+
+    loadYouTubeApi().then(() => {
+      if (cancelled || !mountRef.current || !window.YT?.Player) return
+      player = new window.YT.Player(mountRef.current, {
+        videoId,
+        playerVars: {
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+        },
+        events: {
+          onReady: (event) => {
+            if (cancelled) {
+              event.target.stopVideo()
+              event.target.destroy()
+              return
+            }
+            applyVolume(event.target)
+          },
+          onStateChange: (event) => {
+            if (cancelled || lockedVolume) return
+            const playing = window.YT?.PlayerState?.PLAYING ?? 1
+            const buffering = window.YT?.PlayerState?.BUFFERING ?? 3
+            if (event.data === playing || event.data === buffering) {
+              applyVolume(event.target)
+              if (event.data === playing) lockedVolume = true
+            }
+          },
+        },
+      })
+    })
+
+    return () => {
+      cancelled = true
+      if (!player) return
+      try {
+        player.stopVideo()
+        player.destroy()
+      } catch {
+        // The iframe API can throw if the dialog closes during setup.
+      }
+    }
+  }, [videoId])
+
+  return (
+    <div className="youtube-player">
+      <div ref={mountRef} />
+    </div>
+  )
+}
+
+function VideoLightbox({ video, onClose }: { video: Clip; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", onKey)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    closeRef.current?.focus()
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [onClose])
+
+  return (
+    <div
+      className="video-lightbox"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+      role="presentation"
+    >
+      <section
+        aria-label={video.title}
+        aria-modal="true"
+        className="video-lightbox__dialog"
+        role="dialog"
+      >
+        <div className="video-lightbox__top">
+          <h4>{video.title}</h4>
+          <button aria-label="Close video" onClick={onClose} ref={closeRef} type="button">
+            ×
+          </button>
+        </div>
+        <YouTubePlayer videoId={video.id} />
+        <div className="video-lightbox__bottom">
+          <span>Playback starts at 50% volume</span>
+          <OutboundLink
+            className="video-lightbox__watch"
+            href={`https://www.youtube.com/watch?v=${video.id}`}
+          >
+            Watch on YouTube
+          </OutboundLink>
+        </div>
+      </section>
+    </div>
+  )
+}
 
 type OutboundLinkProps = {
   href: string
@@ -314,30 +501,57 @@ function TourSection() {
         <div className="tour-card">
           <div className="tour-card__copy">
             <p className="micro-label">2026 TOUR CALENDAR</p>
-            <h3>No dates are posted.</h3>
+            <h3>Past dates. No guesswork.</h3>
             <p>
-              The current schedule has no confirmed appearances. This local calendar
-              stays empty until a date is published.
+              Browse the published tour history by year. Open any year for a closer
+              look at its route, regions and notable stops, then follow the original
+              archive for the complete venue-by-venue record.
             </p>
           </div>
           <div className="tour-card__ticket">
             <div className="tour-card__ticket-copy">
-              <span>PAST GIGS</span>
-              <strong>ARCHIVE</strong>
-              <span>Not available</span>
+              <span>TOUR HISTORY</span>
+              <strong>2011—2026</strong>
+              <span>Original archive</span>
             </div>
             <a className="button button--red" href="#past-gigs">
-              Archive status
+              Browse archive
             </a>
           </div>
         </div>
         <div className="past-gigs-note" id="past-gigs">
-          <p className="micro-label">PAST GIGS</p>
-          <h3>Archive not available.</h3>
+          <p className="micro-label">PAST GIGS / SOURCE ARCHIVE</p>
+          <h3>Previous tour dates</h3>
           <p>
-            The public archive page currently returns a not-found response, so no
-            past dates are invented here.
+            Every year opens to show a little more of the route. The original archive
+            remains the authority for exact dates, venues, cancellations and sold-out
+            annotations.
           </p>
+          <div className="archive-year-grid">
+            {tourYears.map((year) => (
+              <details className="archive-year" key={year.year}>
+                <summary>
+                  <strong>{year.year}</strong>
+                  <span>{year.places}</span>
+                  <span className="archive-year__prompt">
+                    Open year details <span aria-hidden="true">＋</span>
+                  </span>
+                </summary>
+                <div className="archive-year__details">
+                  <p>{year.detail}</p>
+                  <p className="archive-year__regions">
+                    <b>Regions:</b> {year.regions}
+                  </p>
+                  <OutboundLink href={pastGigsArchive}>
+                    View original {year.year} tour archive
+                  </OutboundLink>
+                </div>
+              </details>
+            ))}
+          </div>
+          <OutboundLink href={pastGigsArchive}>
+            Open the complete date-by-date archive on DougStanhope.com
+          </OutboundLink>
         </div>
       </div>
     </section>
@@ -399,8 +613,8 @@ function PodcastSection() {
                 </div>
               ))}
             </div>
-            <a className="button button--outline" href="#podcast-archive">
-              Browse {podcastEpisodes.length} local entries
+            <a className="button button--outline button--on-paper" href="#podcast-archive">
+              Browse {podcastEpisodes.length} locally preserved entries
             </a>
             <OutboundLink
               className="button button--red podcast-support"
@@ -416,31 +630,72 @@ function PodcastSection() {
               <p className="micro-label">ARCHIVE / 2016</p>
               <h3>Episode notes, kept local.</h3>
               <p>
-                Public episode titles, notes, dates and artwork from the visible
-                archive, collected here in one place.
+                Episode titles, descriptions, publication dates and artwork are
+                preserved locally. Each entry links back to the original show notes
+                and the listening feed; the All Things Comedy archive carries the
+                broader episode catalogue.
               </p>
             </div>
-            <a className="text-link" href="#podcast">
-              Back to podcast overview
-            </a>
+            <div className="podcast-archive__actions">
+              <OutboundLink href="https://allthingscomedy.com/podcasts/the-doug-stanhope-podcast/">
+                Full All Things Comedy archive
+              </OutboundLink>
+              <a className="text-link" href="#podcast">
+                Back to podcast overview
+              </a>
+            </div>
           </div>
           <div className="podcast-archive__grid">
             {podcastEpisodes.map((episode) => (
-              <article className="episode-card" key={episode.title}>
-                <img
-                  alt=""
-                  height="500"
-                  loading="lazy"
-                  src={episode.image}
-                  width="500"
-                />
-                <div className="episode-card__copy">
-                  <p className="episode-card__date">{episode.date}</p>
-                  <h4>{episode.title}</h4>
+              <details className="episode-card" key={episode.title}>
+                <summary className="episode-card__summary">
+                  <img
+                    alt=""
+                    height="500"
+                    loading="lazy"
+                    src={episode.image}
+                    width="500"
+                  />
+                  <span className="episode-card__copy">
+                    <span className="episode-card__date">{episode.date}</span>
+                    <strong>{episode.title}</strong>
+                    <span className="episode-card__expand">
+                      Episode details <span aria-hidden="true">＋</span>
+                    </span>
+                  </span>
+                </summary>
+                <div className="episode-card__expanded">
                   <p>{episode.description}</p>
+                  <div className="episode-card__links">
+                    {episodePlatforms.map((platform) => (
+                      <OutboundLink href={platform.href} key={platform.label}>
+                        {platform.label}
+                      </OutboundLink>
+                    ))}
+                  </div>
                 </div>
-              </article>
+              </details>
             ))}
+          </div>
+          <div className="podcast-full-catalog">
+            <p className="micro-label">THE REST OF THE ARCHIVE</p>
+            <h4>More than the original site’s 2016 posts.</h4>
+            <p>
+              The show’s current catalogue extends well beyond the legacy posts
+              reproduced here. Browse the complete feed and its individual episode
+              descriptions on the official All Things Comedy and Apple Podcasts pages.
+            </p>
+            <div className="podcast-full-catalog__links">
+              <OutboundLink href="https://allthingscomedy.com/podcasts/the-doug-stanhope-podcast/">
+                All Things Comedy — complete show archive
+              </OutboundLink>
+              <OutboundLink href="https://podcasts.apple.com/us/podcast/the-doug-stanhope-podcast/id610821246">
+                Apple Podcasts — all episodes
+              </OutboundLink>
+              <OutboundLink href="https://www.dougstanhope.com/podcast">
+                Original DougStanhope.com show notes
+              </OutboundLink>
+            </div>
           </div>
         </div>
       </div>
@@ -449,6 +704,21 @@ function PodcastSection() {
 }
 
 function WorkSection() {
+  const [activeVideo, setActiveVideo] = useState<Clip | null>(null)
+  const closeVideo = useCallback(() => setActiveVideo(null), [])
+
+  useEffect(() => {
+    if (!activeVideo) return
+    window.addEventListener("hashchange", closeVideo)
+    window.addEventListener("popstate", closeVideo)
+    window.addEventListener("pagehide", closeVideo)
+    return () => {
+      window.removeEventListener("hashchange", closeVideo)
+      window.removeEventListener("popstate", closeVideo)
+      window.removeEventListener("pagehide", closeVideo)
+    }
+  }, [activeVideo, closeVideo])
+
   return (
     <section
       aria-labelledby="work-heading"
@@ -468,16 +738,23 @@ function WorkSection() {
         />
         <div className="work-grid">
           {workItems.map((item) => (
-            <article className="work-card" key={item.number}>
-              <p className="work-card__meta">
-                <span>{item.number}</span> / {item.type}
-              </p>
-              <h3>{item.title}</h3>
-              <p className="work-card__description">{item.description}</p>
-              {item.href ? (
-                <OutboundLink href={item.href}>{item.action}</OutboundLink>
-              ) : null}
-            </article>
+            <details className="work-card" key={item.number}>
+              <summary>
+                <p className="work-card__meta">
+                  <span>{item.number}</span> / {item.type}
+                </p>
+                <h3>{item.title}</h3>
+                <span className="work-card__prompt">
+                  More details <span aria-hidden="true">＋</span>
+                </span>
+              </summary>
+              <div className="work-card__expanded">
+                <p className="work-card__description">{item.description}</p>
+                {item.href ? (
+                  <OutboundLink href={item.href}>{item.action}</OutboundLink>
+                ) : null}
+              </div>
+            </details>
           ))}
         </div>
         <div className="video-archive" id="stand-up">
@@ -485,8 +762,9 @@ function WorkSection() {
             <p className="micro-label">VIDEO ARCHIVE</p>
             <h3>Clips, specials &amp; appearances.</h3>
             <p>
-              Local thumbnails and titles from the public video page. Playback opens
-              on YouTube.
+              Select a clip to open a dedicated player. Videos start at 50% volume;
+              playback ends when you close the player, choose another clip, or
+              navigate away.
             </p>
           </div>
           {standUpGroups.map((group) => (
@@ -494,27 +772,38 @@ function WorkSection() {
               <h4>{group.title}</h4>
               <div className="video-grid">
                 {group.videos.map((video) => (
-                  <OutboundLink
-                    ariaLabel={`Watch ${video.title} on YouTube`}
-                    className="video-card"
-                    href={`https://www.youtube.com/watch?v=${video.id}`}
-                    key={video.id}
-                  >
-                    <img
-                      alt=""
-                      height="360"
-                      loading="lazy"
-                      src={`/images/stanhope/videos/${video.id}.jpg`}
-                      width="640"
-                    />
-                    <strong>{video.title}</strong>
-                  </OutboundLink>
+                  <article className="video-card" key={video.id}>
+                    <button
+                      aria-label={`Play ${video.title}`}
+                      className="video-card__trigger"
+                      onClick={() => setActiveVideo(video)}
+                      type="button"
+                    >
+                      <img
+                        alt=""
+                        height="360"
+                        loading="lazy"
+                        src={`/images/stanhope/videos/${video.id}.jpg`}
+                        width="640"
+                      />
+                      <strong>{video.title}</strong>
+                      <span className="video-card__prompt">
+                        Play video · 50% volume <span aria-hidden="true">↗</span>
+                      </span>
+                    </button>
+                    <div className="video-card__source">
+                      <OutboundLink href={`https://www.youtube.com/watch?v=${video.id}`}>
+                        Open on YouTube
+                      </OutboundLink>
+                    </div>
+                  </article>
                 ))}
               </div>
             </div>
           ))}
         </div>
       </div>
+      {activeVideo ? <VideoLightbox onClose={closeVideo} video={activeVideo} /> : null}
     </section>
   )
 }
@@ -659,7 +948,14 @@ function StoreSection() {
         </p>
         <div className="store-grid">
           {storeProducts.map((product) => (
-            <article className="store-card" key={product.name}>
+            <a
+              aria-label={`Shop ${product.name} at the official Stanhope Store`}
+              className="store-card"
+              href={product.href}
+              key={product.name}
+              rel="noreferrer"
+              target="_blank"
+            >
               <img
                 alt=""
                 height="500"
@@ -670,8 +966,9 @@ function StoreSection() {
               <div className="store-card__copy">
                 <h3>{product.name}</h3>
                 <p className="store-card__price">{product.price}</p>
+                <span className="store-card__action">Shop at Stanhope Store ↗</span>
               </div>
-            </article>
+            </a>
           ))}
         </div>
         <div className="store-note">
